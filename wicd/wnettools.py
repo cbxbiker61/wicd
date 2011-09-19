@@ -58,7 +58,9 @@ wpa1_pattern = re.compile('(WPA Version 1)', _re_mode)
 wpa2_pattern = re.compile('(WPA2)', _re_mode)
 
 #iwconfig-only regular expressions.
-ip_pattern = re.compile(r'inet [Aa]d?dr[^.]*:([^.]*\.[^.]*\.[^.]*\.[0-9]*)', re.S)
+ip_up = re.compile(r'flags=[0.9]*<([^>]*)>', re.S)
+ip_pattern1 = re.compile(r'inet ([^.]*\.[^.]*\.[^.]*\.[0-9]*)', re.S)
+ip_pattern2 = re.compile(r'inet [Aa]d?dr[^.]*:([^.]*\.[^.]*\.[^.]*\.[0-9]*)', re.S)
 bssid_pattern = re.compile('.*[(Access Point)|(Cell)]: (([0-9A-Z]{2}:){5}[0-9A-Z]{2})', _re_mode)
 bitrate_pattern = re.compile('.*Bit Rate[=:](.*?/s)', _re_mode)
 opmode_pattern = re.compile('.*Mode:(.*?) ', _re_mode)
@@ -724,7 +726,11 @@ class BaseInterface(object):
             output = self.GetIfconfig()
         else:
             output = ifconfig
-        return misc.RunRegex(ip_pattern, output)
+        # check newer ifconfig style
+        m = misc.RunRegex(ip_pattern1, output)
+        if m : return m
+        # check older ifconfig style
+        return misc.RunRegex(ip_pattern2, output)
     
     @neediface(False)
     def VerifyAPAssociation(self, gateway):
@@ -773,6 +779,10 @@ class BaseInterface(object):
         lines = output.split('\n')
         if len(lines) < 5:
             return False
+        # check newer ifconfig style
+        m = misc.RunRegex(ip_up, lines[0])
+        if m and m.find('UP') > -1: return True
+        # check older ifconfig style
         for line in lines[1:4]:
             if line.strip().startswith('UP'):
                 return True   
