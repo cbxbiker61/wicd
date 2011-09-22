@@ -241,7 +241,7 @@ def help_dialog(body):
         # Don't stop because someone let go of the mouse on the frame
         mouse_release = False
         for k in keys:
-            if urwid.is_mouse_event(k) and k[0] == "mouse release":
+            if urwid.util.is_mouse_event(k) and k[0] == "mouse release":
                 mouse_release = True
                 break
         if mouse_release :
@@ -883,7 +883,7 @@ class appGUI():
                                                 data[4], False)
             
         for k in keys:
-            if urwid.is_mouse_event(k):
+            if urwid.util.is_mouse_event(k):
                 event, button, col, row = k
                 self.frame.mouse_event( self.size,
                         event, button, col, row,
